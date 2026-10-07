@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GENITUS CORPORATE TERMINAL</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{--bg:#f4f7fb;--surface:#ffffff;--panel:#ffffff;--border:#d9e2ec;--accent:#0e7490;--gold:#b45309;--green:#15803d;--red:#b91c1c;--muted:#52606d;--text:#1e293b;--bright:#0f172a;--mono:'Space Mono',monospace;--sans:'Rajdhani',sans-serif;}
+  :root.dark-theme{--bg:#080c10;--surface:#0d1117;--panel:#111820;--border:#1e2d3d;--accent:#00d4ff;--gold:#f0c040;--green:#00ff88;--red:#ff3b5c;--muted:#7d92a8;--text:#c8d8e8;--bright:#ffffff;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;min-height:100vh;overflow-x:hidden;transition:background .25s,color .25s;}
+  body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,0.012) 2px,rgba(0,212,255,0.012) 4px);pointer-events:none;z-index:1000;}
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:200;}
+  .logo{display:flex;align-items:center;gap:12px;}
+  .logo-mark{width:32px;height:32px;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;color:var(--accent);position:relative;}
+  .logo-mark::before{content:'';position:absolute;inset:3px;background:rgba(0,212,255,0.08);}
+  .logo-text{font-family:var(--mono);font-size:13px;letter-spacing:4px;color:var(--bright);}
+  .logo-sub{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--muted);display:block;margin-top:1px;}
+  .header-right{display:flex;align-items:center;gap:14px;}
+  .status-dot{width:7px;height:7px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green);animation:blink 2s ease-in-out infinite;}
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+  .status-text{font-family:var(--mono);font-size:11px;color:var(--green);letter-spacing:2px;}
+  #clock{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;}
+  @media(max-width:700px){.status-text,#clock{display:none;}}
+  #themeToggleBtn{background:none;border:1px solid var(--border);color:var(--accent);width:30px;height:30px;border-radius:2px;cursor:pointer;font-size:14px;}
+
+  .main{max-width:1100px;margin:0 auto;padding:20px;}
+  .search-panel{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:18px 20px;margin-bottom:20px;}
+  .search-title{font-family:var(--mono);font-size:12px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:12px;}
+  input[type="text"]{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:11px 14px;outline:none;border-radius:3px;margin-bottom:8px;}
+  select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:9px;outline:none;border-radius:3px;}
+  .cache-badge{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);margin-top:6px;display:block;}
+
+  .company-bar{display:none;background:linear-gradient(135deg,var(--accent),#0a5a70);color:#fff;border-radius:6px;padding:20px 24px;margin-bottom:20px;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  .company-bar h1{font-family:var(--mono);font-size:19px;letter-spacing:1px;}
+  .company-bar .sub{font-family:var(--mono);font-size:11px;opacity:.85;letter-spacing:1px;margin-top:3px;}
+  .print-btn{font-family:var(--mono);font-size:11px;letter-spacing:2px;padding:9px 16px;border:1px solid #fff;background:rgba(255,255,255,0.1);color:#fff;cursor:pointer;border-radius:3px;text-transform:uppercase;}
+  .print-btn:hover{background:#fff;color:var(--accent);}
+
+  .sec{display:none;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px 22px;margin-bottom:18px;position:relative;overflow:hidden;}
+  .sec::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .sec.s1::before{background:#00ccff;} .sec.s2::before{background:#00C853;} .sec.s3::before{background:#8a2be2;}
+  .sec.s4::before{background:#FFD700;} .sec.s5::before{background:#FF6B9D;}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+  .sec-title{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--bright);text-transform:uppercase;}
+  .sec-link{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--accent);text-decoration:none;white-space:nowrap;}
+  .sec-link:hover{text-decoration:underline;}
+
+  .range-btns{display:flex;gap:5px;flex-wrap:wrap;}
+  .range-btn{font-family:var(--mono);font-size:11px;padding:5px 10px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;border-radius:2px;}
+  .range-btn:hover,.range-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(14,116,144,0.08);}
+  .chart-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px;}
+  @media(max-width:600px){.chart-stats{grid-template-columns:repeat(2,1fr);}}
+  .stat-box{background:var(--bg);border:1px solid var(--border);padding:8px 10px;border-radius:3px;text-align:center;}
+  .stat-label{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
+  .stat-value{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--bright);margin-top:3px;}
+  .stat-value.up{color:var(--green);} .stat-value.down{color:var(--red);}
+  .chart-wrap{position:relative;height:280px;}
+  .chart-loading{display:flex;align-items:center;justify-content:center;height:280px;font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--muted);gap:10px;}
+  .spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  @media(max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+  .kpi{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:12px;text-align:center;}
+  .kpi .v{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--bright);}
+  .kpi .l{font-family:var(--mono);font-size:8px;color:var(--muted);text-transform:uppercase;margin-top:4px;letter-spacing:.5px;}
+  .score-badge{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:50%;font-family:var(--mono);font-size:20px;font-weight:700;color:#fff;float:right;margin-left:12px;}
+  .badge{display:inline-block;padding:3px 10px;border-radius:12px;font-family:var(--mono);font-size:10px;font-weight:700;margin-left:6px;}
+  .badge-gold{background:rgba(180,83,9,0.15);color:var(--gold);}
+  .interp{font-size:13px;line-height:1.6;background:rgba(14,116,144,0.07);border:1px dashed var(--accent);border-radius:5px;padding:10px 12px;margin-top:12px;}
+  .na-note{font-size:12px;color:var(--muted);font-style:italic;}
+  .loading-line{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;padding:40px;}
+  .disclaimer{font-size:10px;color:var(--muted);line-height:1.6;border-top:1px solid var(--border);padding-top:10px;margin-top:6px;}
+
+  @media print{
+    header,.search-panel,.print-btn,.sec-link{display:none!important;}
+    body{background:#fff;}
+    .sec,.company-bar{break-inside:avoid;border:1px solid #ccc;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><div class="logo-mark">CT</div><div><span class="logo-text">GENITUS</span><span class="logo-sub">CORPORATE TERMINAL</span></div></div>
+  <div class="header-right">
+    <div class="status-dot"></div><span class="status-text">LIVE</span><span id="clock">--:--:--</span>
+    <button id="themeToggleBtn" title="Toggle theme">🌙</button>
+  </div>
+</header>
+<div class="main">
+  <div class="search-panel">
+    <div class="search-title">Komplettanalyse: Unternehmen wählen</div>
+    <input type="text" id="searchInput" placeholder="Symbol oder Name suchen (z.B. KO, Johnson, Allianz)..." oninput="onSearch()">
+    <select id="resultsSelect" size="8" onchange="onSelectSymbol()" style="display:none"></select>
+    <span class="cache-badge" id="cacheBadge">● lädt...</span>
+  </div>
+
+  <div class="company-bar" id="companyBar">
+    <div><h1 id="cName">—</h1><div class="sub" id="cSub">—</div></div>
+    <button class="print-btn" onclick="window.print()">🖨 Komplettanalyse drucken</button>
+  </div>
+
+  <!-- 1. CHART -->
+  <div class="sec s1" id="secChart">
+    <div class="sec-head"><span class="sec-title">1 · Kursverlauf</span><div class="range-btns" id="rangeBtns"></div></div>
+    <div class="chart-stats" id="chartStats"></div>
+    <div class="chart-wrap"><div class="chart-loading" id="chartLoading"><div class="spinner"></div>LÄDT...</div><canvas id="chartCanvas" style="display:none"></canvas></div>
+  </div>
+
+  <!-- 2. FUNDAMENTALS -->
+  <div class="sec s2" id="secFund">
+    <div class="sec-head"><span class="sec-title">2 · Fundamentaldaten &amp; Health-Score</span><a class="sec-link" href="https://babybounce500.github.io/genitus-bilanz-screener/" target="_blank">Zum Bilanz-Screener →</a></div>
+    <div id="fundBody"></div>
+  </div>
+
+  <!-- 3. SCORE VS PERFORMANCE -->
+  <div class="sec s3" id="secScorePerf">
+    <div class="sec-head"><span class="sec-title">3 · Score vs. Performance</span><a class="sec-link" href="https://babybounce500.github.io/genitus-score-vs-performance/" target="_blank">Zur vollen Korrelationsanalyse →</a></div>
+    <div id="scorePerfBody"></div>
+  </div>
+
+  <!-- 4. MARKOV & RISK LAB -->
+  <div class="sec s4" id="secMarkov">
+    <div class="sec-head"><span class="sec-title">4 · Dividenden-Markov &amp; Risk Lab</span><a class="sec-link" href="https://babybounce500.github.io/genitus-dividend-markov/" target="_blank">Zum vollen Risk Lab →</a></div>
+    <div id="markovBody"></div>
+  </div>
+
+  <!-- 5. BACKTESTER -->
+  <div class="sec s5" id="secBacktest">
+    <div class="sec-head"><span class="sec-title">5 · "Hätte ich gekauft"-Backtester</span><a class="sec-link" href="https://babybounce500.github.io/genitus-haette-ich-gekauft/" target="_blank">Zum vollen Backtester →</a></div>
+    <div id="backtestBody"></div>
+  </div>
+
+  <div class="disclaimer">
+    Kursverlauf: gecachte 5-Jahres-Wochendaten wo verfügbar (zero live calls), sonst Live-Abfrage über den StockSentinel-Proxy. Health-Score: vereinfachtes 4-Faktor-Modell (Profitabilität/Verschuldung/Effizienz/Bewertung), keine vollständige Fundamentalanalyse. Markov-Simulation: historische Zustands-Übergänge, Markov 1. Ordnung, keine unternehmensspezifische Prognose. Backtester: historische Simulation mit fixen Standardparametern (10.000€, 10%-Dip-Schwelle) — für eigene Parameter bitte das volle Tool nutzen. Alle Analysen sind historisch, keine Anlageberatung, keine Garantie für künftige Entwicklung.
+  </div>
+</div>
+<script>
+  const BILANZ_URL = 'https://raw.githubusercontent.com/Babybounce500/genitus-ticker-cache/main/bilanz-data.json';
+  const PRICE_HISTORY_URL = 'https://raw.githubusercontent.com/Babybounce500/genitus-ticker-cache/main/price-history-data.json';
+  const MARKOV_URL = 'https://raw.githubusercontent.com/Babybounce500/genitus-ticker-cache/main/dividend-markov-data.json';
+  const CROSSREF_URL = 'https://raw.githubusercontent.com/Babybounce500/genitus-ticker-cache/main/symbol-crossref.json';
+  const HAZARD_URL = 'https://raw.githubusercontent.com/Babybounce500/genitus-ticker-cache/main/dividend-hazard-data.json';
+  const PROXY = 'https://theserver-open-ai.replit.app';
+
+  (function(){
+    const KEY='genitusTheme:corpterminal';
+    function applyTheme(t){ document.documentElement.classList.toggle('dark-theme', t==='dark'); localStorage.setItem(KEY,t); const btn=document.getElementById('themeToggleBtn'); if(btn) btn.textContent = t==='dark' ? '☀' : '🌙'; }
+    window.__theme = localStorage.getItem(KEY) || 'light';
+    applyTheme(window.__theme);
+    document.getElementById('themeToggleBtn').addEventListener('click', function(){ window.__theme = window.__theme==='dark'?'light':'dark'; applyTheme(window.__theme); });
+  })();
+  setInterval(()=>{ const c=document.getElementById('clock'); if(c) c.textContent=new Date().toLocaleTimeString('de-DE',{hour12:false}); },1000);
+
+  // ---- ported verbatim from Score-vs-Performance.html / Client-Dossier for consistency ----
+  const ROW_ALIASES = {
+    total_revenue:["Total Revenue","TotalRevenue","Revenue","Total revenue"], operating_income:["Operating Income","OperatingIncome","Operating Income or Loss"],
+    net_income:["Net Income","NetIncome","Net Income Common Stockholders"], total_assets:["Total Assets","TotalAssets"],
+    total_debt:["Total Debt","TotalDebt"], total_equity:["Stockholders Equity","Total Stockholder Equity","Common Stock Equity"],
+    cash:["Cash And Cash Equivalents","Cash","Cash Cash Equivalents And Short Term Investments"],
+    operating_cf:["Operating Cash Flow","Total Cash From Operating Activities","Cash Flow From Continuing Operating Activities"],
+    capex:["Capital Expenditure","Capital Expenditures","CapitalExpenditure"], free_cash_flow:["Free Cash Flow","FreeCashFlow"],
+  };
+  function pickRow(rowsObj, key){
+    if(!rowsObj) return null;
+    const aliases = ROW_ALIASES[key] || [key];
+    const lowerMap = {}; Object.keys(rowsObj).forEach(k=>lowerMap[k.toLowerCase().trim()]=k);
+    for(const a of aliases){ const al=a.toLowerCase().trim(); if(lowerMap[al]) return rowsObj[lowerMap[al]]; }
+    return null;
+  }
+  function latest(arr){ if(!arr) return null; for(const v of arr){ if(v!=null && !isNaN(v)) return v; } return null; }
+  function safeDiv(a,b,mult=1){ if(a==null||b==null) return null; if(b===0) return null; return a/b*mult; }
+  function computeRatios(fin, info){
+    const income=fin.income?.rows, balance=fin.balance?.rows, cashflow=fin.cashflow?.rows;
+    const revenue=latest(pickRow(income,'total_revenue')), netInc=latest(pickRow(income,'net_income'));
+    const totalAssets=latest(pickRow(balance,'total_assets')), totalDebt=latest(pickRow(balance,'total_debt')), equity=latest(pickRow(balance,'total_equity'));
+    const out={};
+    out.net_margin=safeDiv(netInc,revenue,100); out.roe=safeDiv(netInc,equity,100);
+    out.debt_equity=safeDiv(totalDebt,equity); out.equity_ratio=safeDiv(equity,totalAssets,100);
+    out.pe=info?.trailingPE??null; out.pb=info?.priceToBook??null; out.ev_ebitda=info?.enterpriseToEbitda??null;
+    return out;
+  }
+  function clip(v,lo=0,hi=100){ return Math.max(lo,Math.min(hi,v)); }
+  function scoreProfitability(r){ let s=0,n=0; if(r.net_margin!=null){s+=clip(50+r.net_margin*2);n++;} if(r.roe!=null){s+=clip(40+r.roe*2);n++;} return n?s/n:50; }
+  function scoreLeverage(r){ const s=[]; if(r.debt_equity!=null){ if(r.debt_equity<0.3)s.push(90); else if(r.debt_equity<0.6)s.push(80); else if(r.debt_equity<1)s.push(65); else if(r.debt_equity<2)s.push(45); else s.push(25);} if(r.equity_ratio!=null) s.push(clip(r.equity_ratio+30)); return s.length?s.reduce((a,b)=>a+b,0)/s.length:50; }
+  function scoreValuation(r){ const s=[]; if(r.pe!=null&&r.pe>0){ if(r.pe<12)s.push(85); else if(r.pe<18)s.push(75); else if(r.pe<25)s.push(60); else if(r.pe<40)s.push(45); else s.push(25);} if(r.pb!=null&&r.pb>0){ if(r.pb<1.5)s.push(85); else if(r.pb<3)s.push(70); else if(r.pb<5)s.push(55); else s.push(35);} return s.length?s.reduce((a,b)=>a+b,0)/s.length:50; }
+  function healthScore(r){ return Math.round(scoreProfitability(r)*0.40 + scoreLeverage(r)*0.25 + 50*0.15 + scoreValuation(r)*0.20); }
+  function scoreColor(v){ if(v>=65) return '#15803d'; if(v>=45) return '#b45309'; return '#b91c1c'; }
+  const CODE_LABEL = { R:'Resumed', I:'Increase', F:'Flat', C:'Cut', S:'Suspended' };
+
+  let bilanzData=null, priceHistory=null, markovData=null, crossref=null, hazardData=null;
+  let searchIndex=[], selected=null, chartInstance=null;
+
+  async function loadAll(){
+    try{
+      const [b,p,m,x,h] = await Promise.all([fetch(BILANZ_URL),fetch(PRICE_HISTORY_URL),fetch(MARKOV_URL),fetch(CROSSREF_URL),fetch(HAZARD_URL)]);
+      bilanzData = b.ok ? await b.json() : {};
+      priceHistory = p.ok ? await p.json() : {};
+      markovData = await m.json();
+      crossref = x.ok ? await x.json() : {fullToYahoo:{}};
+      hazardData = h.ok ? await h.json() : null;
+      searchIndex = markovData.perSymbol.map(r=>({ r, key:(r.symbol+' '+r.name).toLowerCase() }));
+      document.getElementById('cacheBadge').textContent = `● ${searchIndex.length} Firmen bereit (${Object.keys(crossref.fullToYahoo).length} mit Bilanz-Verknüpfung)`;
+    }catch(e){
+      document.getElementById('cacheBadge').textContent = '● Fehler: '+e.message;
+    }
+  }
+
+  let searchTimer=null;
+  window.onSearch = function(){ clearTimeout(searchTimer); searchTimer=setTimeout(doSearch,120); };
+  function doSearch(){
+    const q = document.getElementById('searchInput').value.toLowerCase().trim();
+    const sel = document.getElementById('resultsSelect');
+    if(!q){ sel.style.display='none'; sel.innerHTML=''; return; }
+    const matches=[];
+    for(let i=0;i<searchIndex.length && matches.length<50;i++){ if(searchIndex[i].key.includes(q)) matches.push(searchIndex[i].r); }
+    sel.innerHTML = matches.map(r=>`<option value="${r.symbol}">${r.name} (${r.symbol}) — ${r.exchange}${crossref.fullToYahoo[r.symbol]?' ✓ Bilanz':''}</option>`).join('');
+    sel.style.display = matches.length ? 'block' : 'none';
+  }
+
+  window.onSelectSymbol = function(){
+    const sym = document.getElementById('resultsSelect').value;
+    const row = markovData.perSymbol.find(r=>r.symbol===sym);
+    if(!row) return;
+    selected = row;
+    document.getElementById('companyBar').style.display='flex';
+    document.getElementById('cName').textContent = row.name;
+    document.getElementById('cSub').textContent = `${row.symbol} · ${row.exchange} · ${row.sector||'Sektor unbekannt'}`;
+    ['secChart','secFund','secScorePerf','secMarkov','secBacktest'].forEach(id=>document.getElementById(id).style.display='block');
+    renderChart(row);
+    renderFundamentals(row);
+    renderScorePerf(row);
+    renderMarkov(row);
+    renderBacktest(row);
+  };
+
+  // ---- 1. CHART (cached 5y weekly where available, else live via proxy) ----
+  function yahooOf(row){ return crossref.fullToYahoo[row.symbol]; }
+  window.renderChart = function(row){
+    const yahooSym = yahooOf(row);
+    const cached = yahooSym ? priceHistory[yahooSym] : null;
+    if(cached && cached.series?.length){
+      document.getElementById('rangeBtns').innerHTML = '<span style="font-family:var(--mono);font-size:11px;color:var(--muted)">5 Jahre, wöchentlich (gecacht)</span>';
+      drawCachedChart(cached.series, row.name);
+    } else {
+      document.getElementById('rangeBtns').innerHTML = ['1m','3m','6m','1y','5y'].map((r,i)=>`<button class="range-btn ${i===3?'active':''}" onclick="loadLiveChart('${row.symbol}','${r}')">${r.toUpperCase()}</button>`).join('');
+      loadLiveChart(row.symbol, '1y');
+    }
+  };
+
+  function statBoxes(prices, isUp, extra){
+    const high=Math.max(...prices), low=Math.min(...prices), first=prices[0], last=prices[prices.length-1];
+    const chgPct = first>0 ? ((last-first)/first*100) : 0;
+    document.getElementById('chartStats').innerHTML = `
+      <div class="stat-box"><div class="stat-label">Kurs</div><div class="stat-value">${last.toFixed(2)}</div></div>
+      <div class="stat-box"><div class="stat-label">Veränderung</div><div class="stat-value ${chgPct>=0?'up':'down'}">${chgPct>=0?'+':''}${chgPct.toFixed(1)}%</div></div>
+      <div class="stat-box"><div class="stat-label">Hoch</div><div class="stat-value">${high.toFixed(2)}</div></div>
+      <div class="stat-box"><div class="stat-label">Tief</div><div class="stat-value">${low.toFixed(2)}</div></div>
+      <div class="stat-box"><div class="stat-label">${extra?.label||'Zeitraum'}</div><div class="stat-value">${extra?.value||'—'}</div></div>
+    `;
+  }
+  function drawLineChart(labels, prices, isUp){
+    document.getElementById('chartLoading').style.display='none';
+    const canvas = document.getElementById('chartCanvas'); canvas.style.display='block';
+    if(chartInstance) chartInstance.destroy();
+    const ctx = canvas.getContext('2d');
+    const g = ctx.createLinearGradient(0,0,0,280);
+    g.addColorStop(0, isUp?'rgba(21,128,61,0.25)':'rgba(185,28,28,0.25)'); g.addColorStop(1,'rgba(0,0,0,0)');
+    const isDark = document.documentElement.classList.contains('dark-theme');
+    const textColor = isDark?'#7d92a8':'#52606d', gridColor = isDark?'rgba(125,146,168,0.15)':'rgba(82,96,109,0.12)';
+    chartInstance = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ data:prices, borderColor:isUp?'#15803d':'#b91c1c', borderWidth:2, backgroundColor:g, fill:true, pointRadius:0, tension:0.25 }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{ticks:{color:textColor,maxTicksLimit:8},grid:{color:gridColor}}, y:{ticks:{color:textColor},grid:{color:gridColor}} } } });
+  }
+  function drawCachedChart(series, name){
+    document.getElementById('chartLoading').style.display='flex';
+    document.getElementById('chartLoading').innerHTML='<div class="spinner"></div>LÄDT...';
+    const labels = series.map(p=>p[0]), prices = series.map(p=>p[1]);
+    const isUp = prices[prices.length-1] >= prices[0];
+    statBoxes(prices, isUp, { label:'Zeitraum', value: series.length + ' Wochen' });
+    drawLineChart(labels, prices, isUp);
+  }
+  window.loadLiveChart = async function(symbol, range){
+    document.querySelectorAll('.range-btn').forEach(b=>b.classList.toggle('active', b.textContent.toLowerCase()===range));
+    document.getElementById('chartLoading').style.display='flex';
+    document.getElementById('chartLoading').innerHTML='<div class="spinner"></div>LÄDT LIVE-DATEN...';
+    document.getElementById('chartCanvas').style.display='none';
+    try{
+      const dmap={'1m':30,'3m':90,'6m':180,'1y':365,'5y':1825};
+      const from = new Date(Date.now()-dmap[range]*86400000).toISOString().split('T')[0];
+      const res = await fetch(`${PROXY}/eod/historical/${symbol}?from=${from}`);
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const hist = await res.json();
+      if(!Array.isArray(hist) || !hist.length) throw new Error('Keine Live-Daten verfügbar');
+      hist.sort((a,b)=>new Date(a.date)-new Date(b.date));
+      const valid = hist.map(d=>({date:d.date, price:parseFloat(d.close)})).filter(d=>!isNaN(d.price)&&d.price>0);
+      const labels = valid.map(d=>d.date), prices = valid.map(d=>d.price);
+      const isUp = prices[prices.length-1] >= prices[0];
+      statBoxes(prices, isUp, { label:'Zeitraum', value: range.toUpperCase() });
+      drawLineChart(labels, prices, isUp);
+    }catch(e){
+      document.getElementById('chartLoading').innerHTML = `<span style="color:var(--red)">⚠ ${e.message}</span>`;
+    }
+  };
+
+  // ---- 2. FUNDAMENTALS ----
+  function renderFundamentals(row){
+    const yahooSym = yahooOf(row);
+    const entry = yahooSym ? bilanzData[yahooSym] : null;
+    const body = document.getElementById('fundBody');
+    if(entry && entry.income?.columns?.length){
+      const info = { trailingPE:entry.info?.trailingPE, priceToBook:entry.info?.priceToBook, enterpriseToEbitda:entry.info?.enterpriseToEbitda };
+      const ratios = computeRatios(entry, info);
+      const score = healthScore(ratios);
+      body.innerHTML = `
+        <div class="score-badge" style="background:${scoreColor(score)}">${score}</div>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="v">${ratios.net_margin!=null?ratios.net_margin.toFixed(1)+'%':'n.v.'}</div><div class="l">Nettomarge</div></div>
+          <div class="kpi"><div class="v">${ratios.roe!=null?ratios.roe.toFixed(1)+'%':'n.v.'}</div><div class="l">ROE</div></div>
+          <div class="kpi"><div class="v">${ratios.debt_equity!=null?ratios.debt_equity.toFixed(2):'n.v.'}</div><div class="l">Debt/Equity</div></div>
+          <div class="kpi"><div class="v">${ratios.pe!=null?ratios.pe.toFixed(1):'n.v.'}</div><div class="l">KGV</div></div>
+        </div>`;
+      selected._score = score; selected._ratios = ratios;
+    } else {
+      body.innerHTML = `<p class="na-note">Keine Bilanz-Verknüpfung verfügbar — Health-Score existiert aktuell nur für S&amp;P-500-Firmen (Yahoo↔EODHD-Zuordnung).</p>`;
+    }
+  }
+
+  // ---- 3. SCORE VS PERFORMANCE ----
+  function renderScorePerf(row){
+    const yahooSym = yahooOf(row);
+    const perf = yahooSym ? priceHistory[yahooSym]?.summary : null;
+    const body = document.getElementById('scorePerfBody');
+    if(!perf || selected._score==null){
+      body.innerHTML = `<p class="na-note">Benötigt sowohl Health-Score als auch 5J-Kurshistorie — für dieses Symbol nicht beide verfügbar.</p>`;
+      return;
+    }
+    const score = selected._score;
+    const scoreLabel = score>=65?'stark':score>=45?'mittel':'schwach';
+    const retLabel = perf.totalReturn>=50?'deutlich überdurchschnittlich':perf.totalReturn>=0?'positiv':'negativ';
+    body.innerHTML = `
+      <div class="kpi-grid">
+        <div class="kpi"><div class="v">${score}</div><div class="l">Health-Score</div></div>
+        <div class="kpi"><div class="v">${perf.totalReturn.toFixed(1)}%</div><div class="l">5J Total Return</div></div>
+        <div class="kpi"><div class="v">${perf.annualizedTotalReturn.toFixed(1)}%</div><div class="l">p.a.</div></div>
+        <div class="kpi"><div class="v">${perf.dividendContribution.toFixed(1)}%</div><div class="l">Div.-Beitrag</div></div>
+      </div>
+      <div class="interp">Health-Score ${scoreLabel} (${score}/100), Kursentwicklung über 5 Jahre ${retLabel}. Health-Score und tatsächliche 5J-Rendite sind laut der vollen Korrelationsanalyse über das 28-Indizes-Universum tendenziell positiv korreliert — kein Garant im Einzelfall, aber keine Zufallszahl.</div>`;
+  }
+
+  // ---- 4. MARKOV & RISK LAB ----
+  function weightedNext(matrix, fromState, states){
+    const row = matrix[fromState]; let r = Math.random();
+    for(const s of states){ r -= row[s]; if(r<=1e-9) return s; } return states[states.length-1];
+  }
+  function renderMarkov(row){
+    const scope = row.sector && markovData.matrices[row.sector] ? row.sector : 'GLOBAL';
+    const matrix = markovData.matrices[scope], states = markovData.states;
+    let nStillPaying=0, nGrowing=0; const N=2000, HORIZON=10;
+    for(let p=0;p<N;p++){ let state=row.currentState; for(let y=0;y<HORIZON;y++) state=weightedNext(matrix,state,states); if(state!=='Suspended') nStillPaying++; if(state==='Increase') nGrowing++; }
+    let streak=0; for(let i=row.states.length-1;i>=0;i--){ if(row.states[i]==='C'||row.states[i]==='S') break; streak++; }
+    document.getElementById('markovBody').innerHTML = `
+      <div class="kpi-grid">
+        <div class="kpi"><div class="v">${row.currentState}</div><div class="l">Aktueller Zustand</div></div>
+        <div class="kpi"><div class="v">${streak}J</div><div class="l">Aktuelle Serie</div></div>
+        <div class="kpi" style="color:var(--green)"><div class="v" style="color:var(--green)">${(nStillPaying/N*100).toFixed(0)}%</div><div class="l">Noch zahlend in 10J</div></div>
+        <div class="kpi" style="color:var(--gold)"><div class="v" style="color:var(--gold)">${(nGrowing/N*100).toFixed(0)}%</div><div class="l">Wachsend im Jahr 10</div></div>
+      </div>
+      <div class="interp">Monte-Carlo-Simulation (2.000 Pfade, Matrix: ${scope}) auf Basis historischer Jahr-zu-Jahr-Übergänge. Markov 1. Ordnung — erinnert sich nur an den letzten Zustand, keine unternehmensspezifische Prognose.</div>`;
+  }
+
+  // ---- 5. BACKTESTER ----
+  function simulateBacktest(series, capital, dipThresholdPct){
+    const n = series.length, firstAdj = series[0][2], lastAdj = series[n-1][2];
+    const unitsLump = capital/firstAdj, valueLump = unitsLump*lastAdj;
+    const tranche = capital/n; let unitsDCA=0; for(let i=0;i<n;i++) unitsDCA += tranche/series[i][2];
+    const valueDCA = unitsDCA*lastAdj;
+    const baseBudget=capital*0.5, dipBudget=capital*0.5, baseTranche=baseBudget/n;
+    const MAX_DIP=10, MIN_GAP=4, dipTranche=dipBudget/MAX_DIP;
+    let unitsDip=0, peak=series[0][1], used=0, lastWeek=-999;
+    for(let i=0;i<n;i++){
+      const close=series[i][1], adj=series[i][2];
+      unitsDip += baseTranche/adj;
+      if(close>peak) peak=close;
+      const dd=(peak-close)/peak*100;
+      if(dd>=dipThresholdPct && used<MAX_DIP && (i-lastWeek)>=MIN_GAP){ unitsDip += dipTranche/adj; used++; lastWeek=i; }
+    }
+    if(used<MAX_DIP) unitsDip += (MAX_DIP-used)*dipTranche/lastAdj;
+    const valueDip = unitsDip*lastAdj;
+    return { valueLump, valueDCA, valueDip };
+  }
+  function renderBacktest(row){
+    const yahooSym = yahooOf(row);
+    const ph = yahooSym ? priceHistory[yahooSym] : null;
+    const body = document.getElementById('backtestBody');
+    if(!ph || !ph.series?.length){
+      body.innerHTML = `<p class="na-note">Keine 5J-Kurshistorie verfügbar — Backtest benötigt dieselbe Bilanz-Verknüpfung wie Abschnitt 2/3.</p>`;
+      return;
+    }
+    const capital = 10000;
+    const r = simulateBacktest(ph.series, capital, 10);
+    const best = Math.max(r.valueLump, r.valueDCA, r.valueDip);
+    const fmtE = n=>n.toLocaleString('de-DE',{maximumFractionDigits:0})+' €';
+    function card(label, val){ return `<div class="kpi" style="${val===best?'border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset':''}"><div class="v">${fmtE(val)}</div><div class="l">${label}${val===best?' ★':''}</div></div>`; }
+    body.innerHTML = `
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+        ${card('Einmalanlage (10.000€)', r.valueLump)}
+        ${card('Sparplan', r.valueDCA)}
+        ${card('Dip-Käufer (ab -10%)', r.valueDip)}
+      </div>
+      <div class="interp">Simulation: ${ph.summary.years} Jahre, Startkapital 10.000€, Standard-Dip-Schwelle 10%. "Hätten Sie vor ${ph.summary.years} Jahren investiert und bei jedem Rücksetzer nachgekauft, stünden Sie heute bei ${fmtE(r.valueDip)}."</div>`;
+  }
+
+  loadAll();
+</script>
+</body>
+</html>
